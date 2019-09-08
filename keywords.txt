@@ -1,0 +1,32 @@
+#######################################
+# Syntax Coloring Map For MultiDisp7
+#######################################
+
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
+MultiDisp7	KEYWORD1
+Disp7 KEYWORD1
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+set	KEYWORD2
+clear	KEYWORD2
+print	KEYWORD2
+mode KEYWORD2
+set KEYWORD2
+clear KEYWORD2
+dutycycle KEYWORD2
+period KEYWORD2
+#######################################
+# Instances (KEYWORD2)
+#######################################
+
+#######################################
+# Constants (LITERAL1)
+#######################################
+LARGE LITERAL1
+SMALL LITERAL1
+SOLID LITERAL1
+PWM0 LITERAL1
+PWM1 LITERAL1
