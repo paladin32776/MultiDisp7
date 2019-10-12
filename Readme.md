@@ -3,9 +3,8 @@
 
 # Methods:
 
-```
-MultiDisp7(unsigned const char display_count, unsigned const char* addresses, unsigned const char* types)
-```
+`MultiDisp7(unsigned const char display_count, unsigned const char* addresses, unsigned const char* types)`
+
 Constructor with the following arguments:
 display_count ... Number of displays connected to I2C bus.
 addresses ... Array of I2C addresses for connected digits/TLC59116's
