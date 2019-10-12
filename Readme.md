@@ -3,11 +3,14 @@
 
 # Methods:
 
+```
 MultiDisp7(unsigned const char display_count, unsigned const char* addresses, unsigned const char* types)
+```
 Constructor with the following arguments:
 display_count ... Number of displays connected to I2C bus.
-addresses ... Array of I2C addresses for connected digits/PCA9551's
+addresses ... Array of I2C addresses for connected digits/TLC59116's
 types ... Array of display types. Currently two are supported: MultiDisp7::LARGE and MultiDisp7::SMALL.
+(NOTE: SMALL segment order is still arbitrary, and thus won't result in legible digits)
 
 void set(unsigned char display_index, unsigned char number);
 Set one digit to a numeric value. Arguments are:
