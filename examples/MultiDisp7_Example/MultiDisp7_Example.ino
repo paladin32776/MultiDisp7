@@ -1,9 +1,11 @@
 #include "MultiDisp7.h"
 
-unsigned const char addr[] = {97, 96};
-unsigned const char type[] = {MultiDisp7::LARGE, MultiDisp7::LARGE};
+unsigned const char display_count = 2;
+unsigned const char addr[] = {96,96};
+unsigned const char type[] = {MultiDisp7::LARGE,MultiDisp7::LARGE};
+unsigned const char subdigit[] = {0,1};
 
-MultiDisp7 m7(2,addr, type);
+MultiDisp7 m7(display_count, addr, type, subdigit);
 
 void setup()
 {

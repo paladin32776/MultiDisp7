@@ -1,15 +1,20 @@
 #include "Disp7.h"
 #define PRINTBIN(Num) for (uint32_t t = (1UL<< (sizeof(Num)*8)-1); t; t >>= 1) Serial.write(Num  & t ? '1' : '0'); // Prints a binary number with leading zeros (Automatic Handling)
 
-Disp7::Disp7(unsigned char address, unsigned char display_type, unsigned char display_digit)
+Disp7::Disp7(unsigned char address, unsigned char display_type)
 {
   Wire.begin(14,2);
   addr = address;
+  digit = 0;
   if (display_type==LARGE)
     Seg2LED = Seg2LED_large;
   else if (display_type==SMALL)
     Seg2LED = Seg2LED_small;
-  mode(SOLID);
+  mode(PWM1);
+  write_PWMX(0xFF);
+  write_byte(D7_GRPPWM, 0xFF);
+  write_byte(D7_MODE1,0b00000001);
+  write_byte(D7_MODE2,0b00001000);
 }
 
 void Disp7::mode(unsigned char nmode)
@@ -23,9 +28,26 @@ void Disp7::write_byte(unsigned char regbyte, unsigned char databyte)
   Wire.write(byte(regbyte));            // sends instruction byte
   Wire.write(byte(databyte));             // sends value byte
   Wire.endTransmission();     // stop transmitting
-  // Serial.printf("Write reg 0x%02X: 0x%02X (", regbyte, databyte);
-  // PRINTBIN(databyte);
-  // Serial.println(")");
+}
+
+void Disp7::write_LS()
+{
+  Wire.beginTransmission(addr); // transmit to device #addr
+  Wire.write(byte(D7_LEDOUT0 | D7_AI_ALL)); // sends instruction byte including auto increment set
+  Wire.write(byte(LS.LSbyte[0])); // sends value bytes
+  Wire.write(byte(LS.LSbyte[1]));
+  Wire.write(byte(LS.LSbyte[2]));
+  Wire.write(byte(LS.LSbyte[3]));
+  Wire.endTransmission();     // stop transmitting
+}
+
+void Disp7::write_PWMX(unsigned char value)
+{
+  Wire.beginTransmission(addr); // transmit to device #addr
+  Wire.write(byte(D7_PWM0 | D7_AI_ALL)); // sends instruction byte including auto increment set
+  for (int n=0; n<16; n++)
+    Wire.write(byte(value)); // sends value bytes
+  Wire.endTransmission();     // stop transmitting
 }
 
 unsigned char Disp7::read_byte(unsigned char regbyte)
@@ -35,62 +57,23 @@ unsigned char Disp7::read_byte(unsigned char regbyte)
   Wire.endTransmission(false);
   Wire.requestFrom(addr, (byte)1);
   unsigned char databyte = Wire.read();
-  // Serial.printf("Read reg 0x%02X: 0x%02X (", regbyte, databyte);
-  // PRINTBIN(databyte);
-  // Serial.println(")");
   return databyte;
+}
+
+void Disp7::set_bit(unsigned int *number, unsigned char n, bool x)
+{
+  unsigned int newbit = !!x;    // Also booleanize to force 0 or 1
+  *number ^= (-newbit ^ *number) & (1UL << n);
 }
 
 void Disp7::set_segments(unsigned short segments)
 {
-  unsigned short LS = 0;
   for (int n=0; n<8; n++)
-       LS += offon[bitRead(segments,7-n)] << (2*Seg2LED[n]);
-
-  write_byte(D7_LEDOUT0, lowByte(LS));
-  read_byte(D7_LEDOUT0);
-
-  write_byte(D7_PWM0, 0xFF);
-  write_byte(D7_PWM1, 0xFF);
-  write_byte(D7_PWM2, 0xFF);
-  write_byte(D7_PWM3, 0xFF);
-  write_byte(D7_PWM4, 0xFF);
-  write_byte(D7_PWM5, 0xFF);
-  write_byte(D7_PWM6, 0xFF);
-  write_byte(D7_PWM7, 0xFF);
-
-  write_byte(D7_GRPPWM, 0xFF);
-
-
-  read_byte(D7_EFLAG1);
-  read_byte(D7_EFLAG2);
-
-  write_byte(D7_MODE1,0b00000001);
-  read_byte(D7_MODE1);
-
-  write_byte(D7_MODE2,0b00001000);
-  read_byte(D7_MODE2);
-
-  read_byte(D7_IREF);
-
-
-  // write_byte(D7_LEDOUT1, highByte(LS));
-  // Serial.print("W1 A: ");
-  // PRINTBIN(addr);
-  // Serial.print("  R: ");
-  // PRINTBIN((unsigned char)D7_LEDOUT1);
-  // Serial.print("  D: ");
-  // PRINTBIN(highByte(LS));
-  // Serial.println();
-  //
-  // c = read_byte(D7_LEDOUT1);
-  // Serial.print("R1 A: ");
-  // PRINTBIN(addr);
-  // Serial.print("  R: ");
-  // PRINTBIN((unsigned char)D7_LEDOUT1);
-  // Serial.print("  D: ");
-  // PRINTBIN(c);
-  // Serial.println();
+  {
+    set_bit(&LS.LS, 2*Seg2LED[n+digit*8], offon[bitRead(segments,7-n)] & 1);
+    set_bit(&LS.LS, 2*Seg2LED[n+digit*8]+1, offon[bitRead(segments,7-n)] & 2);
+  }
+  write_LS();
 }
 
 void Disp7::set(unsigned char number)
@@ -103,17 +86,39 @@ void Disp7::set(unsigned char number, unsigned char decimal)
   set_segments(Numbers[number]+decimal);
 }
 
+void Disp7::set_digit(unsigned char _digit)
+{
+  if ((_digit==0) || (_digit==1))
+    digit = _digit;
+}
+
 void Disp7::clear()
 {
   set_segments(0);
 }
 
-void Disp7::dutycycle(unsigned char pwm, unsigned char ontime)
+void Disp7::dutycycle(unsigned char ontime)
 {
   write_byte(D7_GRPPWM, ontime);
 }
 
-void Disp7::period(unsigned char pwm, unsigned char prescaler)
+void Disp7::period(unsigned char prescaler)
 {
     write_byte(D7_GRPFREQ, prescaler);
+}
+
+void Disp7::set_allcall(unsigned char allcalladr)
+{
+  write_byte(D7_ALLCALLADR, allcalladr);
+  write_byte(D7_MODE1, read_byte(D7_MODE1) | 0x01);
+}
+
+void Disp7::clear_allcall()
+{
+  write_byte(D7_MODE1, read_byte(D7_MODE1) & 0xFE);
+}
+
+unsigned char Disp7::get_addr()
+{
+  return addr;
 }

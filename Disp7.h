@@ -33,29 +33,47 @@
 #define D7_EFLAG1 0x1D
 #define D7_EFLAG2 0x1E
 
+#define D7_AI_NONE 0b00000000
+#define D7_AI_ALL 0b10000000
+#define D7_AI_PWM 0b10100000
+#define D7_AI_GRP 0b11000000
+#define D7_AI_PWM_GRP 0b11100000
+
 class Disp7
 {
   private:
     unsigned char addr;
     unsigned char digit;
-    unsigned short modeon[3] = {0b01, 0b10, 0b11};
+    const unsigned short modeon[3] = {0b01, 0b10, 0b11};
     unsigned short offon[2] = {0b00, 0b01};  // {OFF, ON}
     unsigned short* Seg2LED;
-    unsigned short Seg2LED_large[8] = {2,3,5,6,7,1,0,4};
-    unsigned short Seg2LED_small[8] = {0,1,2,3,4,5,6,7};
-    unsigned short Numbers[10] = {0b11111100, 0b01100000, 0b11011010, 0b11110010, 0b01100110,
+    unsigned short Seg2LED_large[16] = {3,4,13,14,15,1,0,2,9,8,10,11,12,6,5,7};
+    unsigned short Seg2LED_small[16] = {0,1,2,3,4,5,6,7,0,1,2,3,4,5,6,7}; // NEEDS UPDATE
+    const unsigned short Numbers[10] = {0b11111100, 0b01100000, 0b11011010, 0b11110010, 0b01100110,
                                   0b10110110, 0b10111110, 0b11100000, 0b11111110, 0b11110110};
-    void write_byte(unsigned char regbyte, unsigned char databyte);
+    union LStype
+    {
+       unsigned char LSbyte[4];
+       unsigned int LS;
+    } LS;
     unsigned char read_byte(unsigned char regbyte);
     void set_segments(unsigned short segments);
+    void set_bit(unsigned int *number, unsigned char n, bool x);
+    void write_byte(unsigned char regbyte, unsigned char databyte);
+    void write_LS();
+    void write_PWMX(unsigned char value);
   public:
     static unsigned const char LARGE=0, SMALL=1;
     static unsigned const char SOLID=0, PWM0=1, PWM1=2;
-    Disp7(unsigned char address, unsigned char display_type, unsigned char display_digit);
+    Disp7(unsigned char address, unsigned char display_type);
     void mode(unsigned char nmode);
     void set(unsigned char number);
     void set(unsigned char number, unsigned char decimal);
+    void set_digit(unsigned char _digit);
     void clear();
-    void dutycycle(unsigned char pwm, unsigned char ontime);
-    void period(unsigned char pwm, unsigned char prescaler);
+    void dutycycle(unsigned char ontime);
+    void period(unsigned char prescaler);
+    void set_allcall(unsigned char allcalladr);
+    void clear_allcall();
+    unsigned char get_addr();
 };
