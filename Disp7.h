@@ -48,7 +48,7 @@ class Disp7
     unsigned short offon[2] = {0b00, 0b01};  // {OFF, ON}
     unsigned short* Seg2LED;
     unsigned short Seg2LED_large[16] = {3,4,13,14,15,1,0,2,9,8,10,11,12,6,5,7};
-    unsigned short Seg2LED_small[16] = {0,1,2,3,4,5,6,7,0,1,2,3,4,5,6,7}; // NEEDS UPDATE
+    unsigned short Seg2LED_small[16] = {2,3,13,14,15,1,0,12,6,7,9,10,11,5,4,8}; // NEEDS UPDATE
     const unsigned short Numbers[10] = {0b11111100, 0b01100000, 0b11011010, 0b11110010, 0b01100110,
                                   0b10110110, 0b10111110, 0b11100000, 0b11111110, 0b11110110};
     union LStype
