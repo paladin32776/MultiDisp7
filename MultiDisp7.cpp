@@ -59,17 +59,20 @@ void MultiDisp7::print(char* str, unsigned char display_index)
   unsigned char Nstr = strlen(str);
   while ((nstr<Nstr) && (n<N))
   {
-    if ((str[nstr]>47 && str[nstr]<58) || (str[nstr]==32))
+    if (str[nstr]!=46 && str[nstr]>=0 && str[nstr]<=255)
+    // if ((str[nstr]>47 && str[nstr]<58) || (str[nstr]==32))
     {
       if (nstr<Nstr-1)
       {
         if (str[nstr]==32)
           clear(n);
         else
-          set(n, str[nstr]-48, str[nstr+1]==46);
+          set(n, str[nstr], str[nstr+1]==46);
+          // set(n, str[nstr]-48, str[nstr+1]==46);
       }
       else
-        set(n, str[nstr]-48);
+        set(n, str[nstr]);
+        // set(n, str[nstr]-48);
       nstr++;
       n++;
     }
