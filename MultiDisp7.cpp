@@ -88,7 +88,6 @@ void MultiDisp7::print(char* str)
 
 void MultiDisp7::dim(unsigned char level)
 {
-  unsigned char ontime =(unsigned char)(level*255/100);
   for (int n=0; n<N; n++)
-    D[n]->dutycycle(ontime);
+    D[n]->dutycycle(level);
 }
